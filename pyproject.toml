@@ -1,0 +1,22 @@
+[project]
+name = "airflow-jobs"
+version = "0.1.0"
+requires-python = ">=3.10.15"
+dependencies = [
+    "apache-airflow>=2.10.5",
+    "apache-airflow-providers-cncf-kubernetes>=10.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "assertpy>=1.1",
+    "bandit>=1.8.3",
+    "flake8>=7.1.2",
+    "flake8-bugbear>=24.12.12",
+    "mypy>=1.15.0",
+    "pycodestyle>=2.12.1",
+    "pyflakes>=3.2.0",
+    "pylint>=3.3.4",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
