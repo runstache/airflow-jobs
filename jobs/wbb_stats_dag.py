@@ -2,13 +2,13 @@
 WBB Airflow Stats Job
 """
 
-from datetime import datetime
+import logging
+import os
 
 from airflow import DAG
 from airflow.models.param import Param
 from airflow.providers.cncf.kubernetes.operators.job import KubernetesJobOperator
 from kubernetes.client import models as k8s, V1PodTemplateSpec, V1PodSpec
-import os
 
 KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 
@@ -95,6 +95,8 @@ with DAG(
     job_template = create_job_spec(dag.params['secret'], dag.dag_id, dag.params['image'],
                                    ['python', 'stats_puller.py', '-b',
                                     dag.params['bucket'], '-s', dag.params['schedule']])
+
+    logging.info('Starting Stats Job with Kube Config: %s', KUBE_CONFIG)
     KubernetesJobOperator(full_job_spec=job_template, backoff_limit=5,
                           wait_until_job_complete=True, job_poll_interval=60,
                           config_file=KUBE_CONFIG, task_id='wcbb_stat_puller')
