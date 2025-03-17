@@ -8,6 +8,9 @@ from airflow import DAG
 from airflow.models.param import Param
 from airflow.providers.cncf.kubernetes.operators.job import KubernetesJobOperator
 from kubernetes.client import models as k8s, V1PodTemplateSpec, V1PodSpec
+import os
+
+KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 
 
 def create_job_spec(secret_name: str, job_name: str, image: str, commands: list[str]) -> k8s.V1Job:
@@ -93,7 +96,8 @@ with DAG(
                                    ['python', 'schedule_puller.py', '-g',
                                     dag.params['group'], '-d', dag.params['date']])
     KubernetesJobOperator(full_job_spec=job_template, backoff_limit=5,
-                          wait_until_job_complete=True, job_poll_interval=60)
+                          wait_until_job_complete=True, job_poll_interval=60,
+                          config_file=KUBE_CONFIG)
 
 if __name__ == '__main__':
     dag.test(group=50, date='20240101', image='larrywshields/gen-stats-worker',
