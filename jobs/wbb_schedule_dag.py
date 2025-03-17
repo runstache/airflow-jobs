@@ -83,21 +83,21 @@ def create_job_spec(secret_name: str, job_name: str, image: str, commands: list[
 
 
 with DAG(
-        dag_id='wcbb_stat_download',
-        description='Downloads Stats',
+        dag_id='wcbb_schedule_download',
+        description='Downloads',
         schedule_interval=None,
         params={
-            'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
-            'schedule': Param(name='schedule', type='string'),
+            'group': Param(name='group', default='50', type='string'),
+            'date': Param(name='date', default=datetime.now().strftime('%Y%m%d'), type='string'),
             'image': Param(name='image', default='larrywshields/gen-stats-worker', type='string'),
             'secret': Param(name='secret', default='wbb-worker-secrets', type='string')
         }) as dag:
     job_template = create_job_spec(dag.params['secret'], dag.dag_id, dag.params['image'],
-                                   ['python', 'stats_puller.py', '-b',
-                                    dag.params['bucket'], '-s', dag.params['schedule']])
+                                   ['python', 'schedule_puller.py', '-g',
+                                    dag.params['group'], '-d', dag.params['date']])
     KubernetesJobOperator(full_job_spec=job_template, backoff_limit=5,
                           wait_until_job_complete=True, job_poll_interval=60,
-                          config_file=KUBE_CONFIG, task_id='wcbb_stat_puller')
+                          config_file=KUBE_CONFIG, task_id='wcbb_schedule_puller')
 
 if __name__ == '__main__':
     dag.test(group=50, date='20240101', image='larrywshields/gen-stats-worker',
