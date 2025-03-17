@@ -87,7 +87,7 @@ with DAG(
         description='Downloads',
         schedule_interval=None,
         params={
-            'group': Param(name='group', default=50, type='string'),
+            'group': Param(name='group', default='50', type='string'),
             'date': Param(name='date', default=datetime.now().strftime('%Y%m%d'), type='string'),
             'image': Param(name='image', default='larrywshields/gen-stats-worker', type='string'),
             'secret': Param(name='secret', default='wbb-worker-secrets', type='string')
