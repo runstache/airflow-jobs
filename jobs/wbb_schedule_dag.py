@@ -87,6 +87,7 @@ with DAG(
         description='Downloads',
         schedule_interval=None,
         params={
+            'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
             'group': Param(name='group', default='50', type='string'),
             'date': Param(name='date', default=datetime.now().strftime('%Y%m%d'), type='string'),
             'image': Param(name='image', default='larrywshields/gen-stats-worker', type='string'),
@@ -94,7 +95,8 @@ with DAG(
         }) as dag:
     job_template = create_job_spec(dag.params['secret'], dag.dag_id, dag.params['image'],
                                    ['python', 'schedule_puller.py', '-g',
-                                    dag.params['group'], '-d', dag.params['date']])
+                                    dag.params['group'], '-d', dag.params['date'], '-b',
+                                    dag.params['bucket']])
     KubernetesJobOperator(full_job_spec=job_template, backoff_limit=5,
                           wait_until_job_complete=True, job_poll_interval=60,
                           config_file=KUBE_CONFIG, task_id='wcbb_schedule_puller')
