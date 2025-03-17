@@ -88,7 +88,7 @@ with DAG(
         schedule_interval=None,
         params={
             'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
-            'schedule': Param(name='schedule', type='string'),
+            'schedule': Param(name='schedule', default='schedule/2024/', type='string'),
             'image': Param(name='image', default='larrywshields/gen-stats-worker', type='string'),
             'secret': Param(name='secret', default='wbb-worker-secrets', type='string')
         }) as dag:
