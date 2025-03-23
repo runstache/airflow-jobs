@@ -2,99 +2,71 @@
 WBB Airflow Stats Job
 """
 
+import json
+import os
+
 from airflow import DAG
+from airflow.models import Variable
 from airflow.models.param import Param
+from airflow.operators.python import PythonOperator
 from airflow.providers.cncf.kubernetes.operators.job import KubernetesJobOperator
-from kubernetes.client import models as k8s, V1PodTemplateSpec, V1PodSpec
+from uuid import uuid4
+
+import helpers
 
 
-def create_job_spec(secret_name: str, job_name: str, image: str, commands: list[str]) -> k8s.V1Job:
+def make_template(**context):
     """
-    Job Template Spec Creation
-    :param secret_name: Pod Sectet Name
-    :param job_name: Job Name
-    :param image: Docker Image
-    :param commands: Commands
-    :return: K8 Job
+    Generates the Template
+    """
+    print('Building Template')
+    task_instance = context['ti']
+    params = context['params']
+    root = params['temp']
+    job_spec = helpers.create_job_spec(Variable.get('WBB_SECRET'), 'wcbb-schedule-job',
+                                       Variable.get('STAT_IMAGE'),
+                                       ['python', 'stats_puller.py', '-b', params['bucket'],
+                                        '-s', params['schedule']], Variable.get('WBB_URL'))
+
+    output_path = os.path.join(root, 'templates')
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    file_name = f"{str(uuid4())}-stats-job.json"
+    with open(os.path.join(output_path, file_name), 'w') as f:
+        json.dump(job_spec, f)
+
+    task_instance.xcom_push(key='job-file',
+                            value=os.path.join(output_path, file_name))
+
+
+def clean_up_template(**context):
+    """
+    Cleans up the Template after Execution
     """
 
-    return k8s.V1Job(
-        metadata=k8s.V1ObjectMeta(
-            name=job_name
-        ),
-        spec=k8s.V1JobSpec(
-            template=V1PodTemplateSpec(
-                spec=V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name=job_name,
-                            image=image,
-                            command=commands,
-                            env=[
-                                k8s.V1EnvVar(
-                                    name='AWS_ACCESS_KEY_ID',
-                                    value_from=k8s.V1EnvVarSource(
-                                        secret_key_ref=k8s.V1SecretKeySelector(
-                                            name=secret_name,
-                                            key='AWS_ACCESS_KEY_ID'
-                                        )
-                                    )
-                                ),
-                                k8s.V1EnvVar(
-                                    name='AWS_SECRET_ACCESS_KEY',
-                                    value_from=k8s.V1EnvVarSource(
-                                        secret_key_ref=k8s.V1SecretKeySelector(
-                                            name=secret_name,
-                                            key='AWS_SECRET_ACCESS_KEY'
-                                        )
-                                    )
-                                ),
-                                k8s.V1EnvVar(
-                                    name='S3_ENDPOINT',
-                                    value_from=k8s.V1EnvVarSource(
-                                        secret_key_ref=k8s.V1SecretKeySelector(
-                                            name=secret_name,
-                                            key='S3_ENDPOINT'
-                                        )
-                                    )
-                                ),
-                                k8s.V1EnvVar(
-                                    name=secret_name,
-                                    value_from=k8s.V1EnvVarSource(
-                                        secret_key_ref=k8s.V1SecretKeySelector(
-                                            name='wbb-worker-secrets',
-                                            key='SELENIUM_DRIVER'
-                                        )
-                                    )
-                                )
-                            ]
-                        )
-                    ]
-                )
-            )
-        )
-
-    )
+    task_instance = context['ti']
+    path = task_instance.xcom_pull(task_ids='template-generator', key='job-file')
+    if os.path.exists(path):
+        os.remove(path)
 
 
-with DAG(
-        dag_id='wcbb_stat_download',
-        description='Downloads Stats',
-        schedule_interval=None,
-        params={
-            'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
-            'schedule': Param(name='schedule', default='schedule/2024/', type='string'),
-            'image': Param(name='image', default='larrywshields/gen-stats-worker', type='string'),
-            'secret': Param(name='secret', default='wbb-worker-secrets', type='string')
-        }) as dag:
-    job_template = create_job_spec(dag.params['secret'], dag.dag_id, dag.params['image'],
-                                   ['python', 'stats_puller.py', '-b',
-                                    dag.params['bucket'], '-s', dag.params['schedule']])
+with DAG(dag_id='wbb_stats_dag', schedule=None, catchup=False, tags=['stats'],
+         params={
+             'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
+             'schedule': Param(name='schedule', default='schedule/', type='string'),
+             'temp': Param(name='temp', default='/airflow', type='string')},
+         default_args={'provider_context': True}):
+    template = PythonOperator(task_id='template-generator',
+                              python_callable=make_template)
 
-    KubernetesJobOperator(full_job_spec=job_template, backoff_limit=5,
-                          wait_until_job_complete=True, job_poll_interval=60,
-                          config_file='/airflow/kubes/config', task_id='wcbb_stat_puller')
+    k8_job = KubernetesJobOperator(task_id='wbb-stat-job',
+                                   job_template_file="{{ ti.xcom_pull(task_ids='template-generator', key='job-file') }}",
+                                   backoff_limit=5,
+                                   wait_until_job_complete=True, job_poll_interval=60,
+                                   ttl_seconds_after_finished=300)
 
-if __name__ == '__main__':
-    dag.test(group=50, date='20240101', image='larrywshields/gen-stats-worker',
-             secret='wbb-worker-secrets')
+    clean_up = PythonOperator(task_id='clean-up-template',
+                              python_callable=clean_up_template)
+
+    template >> k8_job >> clean_up
