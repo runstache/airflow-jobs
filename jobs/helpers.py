@@ -77,7 +77,7 @@ def create_job_spec(secret_name: str, job_name: str, image: str, commands: list[
                     ],
                     "restartPolicy": "Never"
                 },
-                "backofPolicy": 4,
+                "backoffPolicy": 4,
                 "ttlSecondsAfterFinished": 300
             }
         }
