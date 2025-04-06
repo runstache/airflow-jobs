@@ -53,7 +53,7 @@ def clean_up_template(**context):
 
 with DAG(dag_id='mlb_stats_dag', schedule=None, catchup=False, tags=['stats'],
          params={
-             'bucket': Param(name='bucket', default='mlb-stats-bucket', type='string'),
+             'bucket': Param(name='bucket', default='baseball-stat-bucket', type='string'),
              'schedule': Param(name='schedule', default='schedule/', type='string'),
              'temp': Param(name='temp', default='/airflow', type='string')},
          default_args={'provider_context': True}):
