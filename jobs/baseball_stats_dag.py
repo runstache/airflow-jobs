@@ -1,5 +1,5 @@
 """
-WBB Airflow Stats Job
+MLB Airflow Stats Job
 """
 
 import json
@@ -23,10 +23,10 @@ def make_template(**context):
     task_instance = context['ti']
     params = context['params']
     root = params['temp']
-    job_spec = helpers.create_job_spec(Variable.get('WBB_SECRET'), 'wcbb-stats-job',
+    job_spec = helpers.create_job_spec(Variable.get('BASEBALL_SECRET'), 'mlb-stats-job',
                                        Variable.get('STAT_IMAGE'),
                                        ['python', 'stats_puller.py', '-b', params['bucket'],
-                                        '-s', params['schedule']], Variable.get('WBB_URL'))
+                                        '-s', params['schedule']], Variable.get('BASEBALL_URL'))
 
     output_path = os.path.join(root, 'templates')
     if not os.path.exists(output_path):
@@ -51,16 +51,16 @@ def clean_up_template(**context):
         os.remove(path)
 
 
-with DAG(dag_id='wbb_stats_dag', schedule=None, catchup=False, tags=['stats'],
+with DAG(dag_id='mlb_stats_dag', schedule=None, catchup=False, tags=['stats'],
          params={
-             'bucket': Param(name='bucket', default='wbb-stats-bucket', type='string'),
+             'bucket': Param(name='bucket', default='baseball-stat-bucket', type='string'),
              'schedule': Param(name='schedule', default='schedule/', type='string'),
              'temp': Param(name='temp', default='/airflow', type='string')},
          default_args={'provider_context': True}):
     template = PythonOperator(task_id='template-generator',
                               python_callable=make_template)
 
-    k8_job = KubernetesJobOperator(task_id='wbb-stat-job',
+    k8_job = KubernetesJobOperator(task_id='mlb-stat-job',
                                    job_template_file="{{ ti.xcom_pull(task_ids='template-generator', key='job-file') }}",
                                    backoff_limit=5,
                                    wait_until_job_complete=True, job_poll_interval=60,
