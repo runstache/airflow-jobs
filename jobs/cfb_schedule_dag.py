@@ -1,5 +1,5 @@
 """
-WBB Airflow Stats Job DAG
+CFB Airflow DAG for Schedule information
 """
 
 from datetime import datetime
@@ -8,16 +8,19 @@ from airflow.models.param import Param
 
 from factories import DagFactory
 
-BASE_URL = 'WBB_URL'
-SECRET_VARIABLE = 'WBB_SECRET'
-IDENTIFIER = 'wcbb'
-BUCKET_VARIABLE = 'WBB_BUCKET'
+BASE_URL = 'CFB_URL'
+SECRET_VARIABLE = 'CFB_SECRET'
+IDENTIFIER = 'cfb'
+BUCKET_VARIABLE = 'CFB_BUCKET'
 
 tags = ['schedule']
 
 PARAMETERS = {
     'date': Param(name='date', default=datetime.now().strftime('%Y%m%d'), type='string'),
-    'group': Param(name='group', default='50', type='string'),
+    'group': Param(name='group', default='80', type='string'),
+    'week': Param(name='week', default='1', type='string'),
+    'year': Param(name='year', default=datetime.now().strftime('%Y'), type='string'),
+    'season': Param(name='season', default='2', type='string'),
     'temp': Param(name='temp', default='/airflow'),
 }
 

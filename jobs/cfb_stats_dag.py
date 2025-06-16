@@ -1,15 +1,15 @@
 """
-Airflow DAG for WNBA Stats
+CFB Airflow DAG for Stats information
 """
 
 from airflow.models.param import Param
 
 from factories import DagFactory
 
-BASE_URL = 'WNBA_URL'
-SECRET_VARIABLE = 'WNBA_SECRET'
-IDENTIFIER = 'wnba'
-BUCKET_VARIABLE = 'WNBA_BUCKET'
+BASE_URL = 'CFB_URL'
+SECRET_VARIABLE = 'CFB_SECRET'
+IDENTIFIER = 'cfb'
+BUCKET_VARIABLE = 'CFB_BUCKET'
 
 tags = ['stats']
 
