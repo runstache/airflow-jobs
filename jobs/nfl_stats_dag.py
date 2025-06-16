@@ -1,20 +1,20 @@
 """
-Airflow DAG for WNBA Stats
+Airflow DAG for NFL Stats
 """
 
 from airflow.models.param import Param
 
 from factories import DagFactory
 
-BASE_URL = 'WNBA_URL'
-SECRET_VARIABLE = 'WNBA_SECRET'
-IDENTIFIER = 'wnba'
-BUCKET_VARIABLE = 'WNBA_BUCKET'
+BASE_URL = 'NFL_URL'
+SECRET_VARIABLE = 'NFL_SECRET'
+IDENTIFIER = 'nfl'
+BUCKET_VARIABLE = 'NFL_BUCKET'
 
 tags = ['stats']
 
 PARAMETERS = {
-    'schedule': Param(name='schedule', default='schedule/', type='string'),
+    'schedule': Param(name='schedule', default='schedules/', type='string'),
     'temp': Param(name='temp', default='/airflow', type='string'),
 }
 
