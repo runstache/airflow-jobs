@@ -113,7 +113,8 @@ class DagFactory:
                                            job_template_file="{{ ti.xcom_pull(task_ids='template-generator', key='job-file') }}",
                                            backoff_limit=5,
                                            wait_until_job_complete=True, job_poll_interval=60,
-                                           ttl_seconds_after_finished=300)
+                                           ttl_seconds_after_finished=300,
+                                           log_events_on_failure=True, get_logs=True)
 
             clean_up = PythonOperator(task_id='clean-up-template',
                                       python_callable=helpers.clean_up_templates)
