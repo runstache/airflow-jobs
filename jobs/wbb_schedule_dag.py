@@ -5,11 +5,10 @@ WBB Airflow Stats Job DAG
 from datetime import datetime
 
 from airflow.models.param import Param
-
 from factories import DagFactory
 
 BASE_URL = 'WBB_URL'
-SECRET_VARIABLE = 'WBB_SECRET'
+SECRET_VARIABLE_NAME = 'WBB_SECRET'
 IDENTIFIER = 'wcbb'
 BUCKET_VARIABLE = 'WBB_BUCKET'
 
@@ -23,10 +22,10 @@ PARAMETERS = {
 
 
 dag = DagFactory.create_schedule_dag(
-    secret_name=SECRET_VARIABLE,
+    secret_name=SECRET_VARIABLE_NAME,
     identifier=IDENTIFIER,
     tags=tags,
     bucket=BUCKET_VARIABLE,
     url=BASE_URL,
-    parameters=PARAMETERS
+    parameters=PARAMETERS,
 )

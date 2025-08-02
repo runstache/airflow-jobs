@@ -5,11 +5,10 @@ NFL Airflow DAG for schedule information
 from datetime import datetime
 
 from airflow.models.param import Param
-
 from factories import DagFactory
 
 BASE_URL = 'NFL_URL'
-SECRET_VARIABLE = 'NFL_SECRET'
+SECRET_VARIABLE_NAME = 'NFL_SECRET'
 IDENTIFIER = 'nfl'
 BUCKET_VARIABLE = 'NFL_BUCKET'
 
@@ -24,10 +23,10 @@ PARAMETERS = {
 
 
 dag = DagFactory.create_schedule_dag(
-    secret_name=SECRET_VARIABLE,
+    secret_name=SECRET_VARIABLE_NAME,
     identifier=IDENTIFIER,
     tags=tags,
     bucket=BUCKET_VARIABLE,
     url=BASE_URL,
-    parameters=PARAMETERS
+    parameters=PARAMETERS,
 )
