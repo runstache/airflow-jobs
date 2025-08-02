@@ -37,7 +37,7 @@ class DagFactory:
 
         with DAG(dag_id=f"{identifier}-schedule-dag", schedule=None, catchup=False, tags=tags,
                  params=parameters,
-                 default_args={'provider_context': True}) as schedule_dag:
+                 default_args={'provider_context': True}, max_active_runs=2) as schedule_dag:
 
             commands = [
                 'python',
@@ -94,7 +94,7 @@ class DagFactory:
 
         with DAG(dag_id=f"{identifier}-stat-dag", schedule=None, catchup=False, tags=tags,
                  params=parameters,
-                 default_args={'provider_context': True}) as stat_dag:
+                 default_args={'provider_context': True}, max_active_runs=1) as stat_dag:
 
             commands = ['python', 'stats_puller.py', '-b', Variable.get(bucket)]
 
