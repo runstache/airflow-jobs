@@ -1,0 +1,17 @@
+[Unit]
+Description=Airflow Scheduler Daemon
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+EnvironmentFile=/etc/default/airflow
+User=airflow-user
+Group=airflow-user
+Type=simple
+ExecStart=/bin/bash -c 'source $AIRFLOW_HOME/.venv/bin/activate && airflow scheduler'
+Restart=on-failure
+RestartSec=5s
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

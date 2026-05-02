@@ -1,0 +1,23 @@
+[Unit]
+Description=Airflow Daemon
+
+After=network.target postgresql.service airflow-scheduler.service
+Wants=postgresql.service
+
+[Service]
+WorkingDirectory=/airflow
+
+EnvironmentFile=/etc/default/airflow
+User=airflow-user
+Group=airflow-user
+
+ExecStart=/bin/bash -c 'source $AIRFLOW_HOME/.venv/bin/activate && airflow scheduler'
+ExecStartPre=/bin/bash -c "if [ -z \"${AIRFLOW_HOME}\" ]; then echo \"Variable AIRFLOW_HOME not set in /etc/default/airflow\"; exit 1; fi"
+ExecStart=/bin/bash -c 'source $AIRFLOW_HOME/.venv/bin/activate && airflow webserver --pid /run/airflow/webserver.pid'
+
+Restart=on-failure
+RestartSec=5s
+ProtectProc=invisible
+
+[Install]
+WantedBy=multi-user.target
