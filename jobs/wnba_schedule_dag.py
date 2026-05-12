@@ -4,7 +4,7 @@ Airflow DAG for pulling Schedule information for WNBA games
 
 from datetime import datetime
 
-from airflow.models.param import Param
+from airflow.sdk import Param
 from factories import DagFactory
 
 BASE_URL = 'WNBA_URL'

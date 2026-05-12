@@ -4,7 +4,7 @@ NFL Airflow DAG for schedule information
 
 from datetime import datetime
 
-from airflow.models.param import Param
+from airflow.sdk import Param
 from factories import DagFactory
 
 BASE_URL = 'NFL_URL'

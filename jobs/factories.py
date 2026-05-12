@@ -5,8 +5,8 @@ Airflow Factories
 import helpers
 from airflow import DAG
 from airflow.models import Variable
-from airflow.operators.python import PythonOperator
 from airflow.providers.cncf.kubernetes.operators.job import KubernetesJobOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 
 class DagFactory:

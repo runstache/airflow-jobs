@@ -2,7 +2,7 @@
 WBB Airflow Stats Job
 """
 
-from airflow.models.param import Param
+from airflow.sdk import Param
 from factories import DagFactory
 
 BASE_URL = 'WBB_URL'
